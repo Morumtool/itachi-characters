@@ -1,0 +1,6 @@
+{
+  "name": "イタチイタ戦隊出演キャラクター",
+  "description": "イタチイタ戦隊の味方・敵キャラクター図鑑、戦闘力ランキング、キャラ特徴一覧アプリ",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
