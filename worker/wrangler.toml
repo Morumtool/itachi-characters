@@ -1,0 +1,9 @@
+name = "discord-auth-worker"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+# Variables here are public, secrets should be set via wrangler secret put or dashboard
+DISCORD_CLIENT_ID = "1533551688814690446"
+DISCORD_GUILD_ID = "1532009274065162360"
+# DISCORD_REDIRECT_URI and DISCORD_CLIENT_SECRET will be set as wrangler secrets
