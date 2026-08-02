@@ -19,6 +19,9 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  userName,
+  onLogin,
+  onLogout,
   searchTerm,
   setSearchTerm,
   selectedFaction,
