@@ -1,0 +1,19 @@
+image: node:20
+
+pages:
+  stage: deploy
+  script:
+    - npm ci
+    # Build the Vite application. The VITE_API_BASE_URL variable should be configured in
+    # GitLab > Settings > CI/CD > Variables.
+    # Example: VITE_API_BASE_URL=https://discord-auth-worker.<your-subdomain>.workers.dev
+    - npm run build
+    # GitLab Pages serves the contents of the 'public' directory.
+    # Move Vite's build output (dist) to public.
+    - rm -rf public
+    - mv dist public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
