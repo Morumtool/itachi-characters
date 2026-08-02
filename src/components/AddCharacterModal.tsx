@@ -5,13 +5,50 @@ import { X, PlusCircle, Lock, CheckCircle2, ShieldAlert, LogIn } from 'lucide-re
 interface AddCharacterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (newChar: Character) => void;
+  onSave: (character: Character) => void;
+  initialCharacter?: Character | null;
+  isLoggedIn: boolean;
+  userName: string | null;
 }
+
+const cropImageToSquare = async (file: File): Promise<string> => {
+  const image = new Image();
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => (reader.result ? resolve(reader.result as string) : reject('読み込み失敗'));
+    reader.onerror = () => reject('読み込み失敗');
+    reader.readAsDataURL(file);
+  });
+
+  return new Promise((resolve, reject) => {
+    image.onload = () => {
+      const size = Math.min(image.width, image.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject('キャンバスが作成できませんでした');
+        return;
+      }
+
+      const sx = (image.width - size) / 2;
+      const sy = (image.height - size) / 2;
+      ctx.drawImage(image, sx, sy, size, size, 0, 0, 256, 256);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    image.onerror = () => reject('画像読み込みに失敗しました');
+    image.src = dataUrl;
+  });
+};
 
 export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
   isOpen,
   onClose,
-  onAdd,
+  onSave,
+  initialCharacter,
+  isLoggedIn,
+  userName,
 }) => {
   const [name, setName] = useState('');
   const [faction, setFaction] = useState<Faction>('ally');
@@ -24,6 +61,8 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
   const [favoriteFood, setFavoriteFood] = useState('');
   const [description, setDescription] = useState('');
   const [avatarSymbol, setAvatarSymbol] = useState('✨');
+  const [avatarImage, setAvatarImage] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   // Discord Auth state
   const [discordVerified, setDiscordVerified] = useState(false);
@@ -31,6 +70,37 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
   const [targetServerId, setTargetServerId] = useState('123456789012345678');
   const [isVerifying, setIsVerifying] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialCharacter) {
+      setName(initialCharacter.name);
+      setFaction(initialCharacter.faction);
+      setPowerDisplay(initialCharacter.powerDisplay);
+      setNumericPower(initialCharacter.numericPower);
+      setRank(initialCharacter.rank);
+      setFirstPerson(initialCharacter.firstPerson || '僕');
+      setCatchphrase(initialCharacter.catchphrase);
+      setSpecialMove(initialCharacter.specialMove);
+      setFavoriteFood(initialCharacter.favoriteFood || '');
+      setDescription(initialCharacter.description);
+      setAvatarSymbol(initialCharacter.avatarSymbol || '✨');
+      setAvatarImage(initialCharacter.avatarImage || null);
+    } else {
+      setName('');
+      setFaction('ally');
+      setPowerDisplay('50');
+      setNumericPower(50);
+      setRank('B');
+      setFirstPerson('僕');
+      setCatchphrase('');
+      setSpecialMove('');
+      setFavoriteFood('');
+      setDescription('');
+      setAvatarSymbol('✨');
+      setAvatarImage(null);
+      setImageError(null);
+    }
+  }, [initialCharacter, isOpen]);
 
   useEffect(() => {
     // Listen for Discord OAuth popup postMessage
@@ -75,14 +145,21 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
     }
   };
 
-  const handleSimulateAuth = () => {
-    setIsVerifying(true);
-    setTimeout(() => {
-      setDiscordVerified(true);
-      setDiscordUser('ItachiHero#1234');
-      setAuthError(null);
-      setIsVerifying(false);
-    }, 500);
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setImageError('画像ファイルを選択してください。');
+      return;
+    }
+
+    try {
+      const croppedDataUrl = await cropImageToSquare(file);
+      setAvatarImage(croppedDataUrl);
+      setImageError(null);
+    } catch (error) {
+      setImageError(typeof error === 'string' ? error : '画像処理に失敗しました。');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -93,15 +170,15 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
     }
     if (!name.trim()) return;
 
-    const newChar: Character = {
-      id: `custom-${Date.now()}`,
+    const savedChar: Character = {
+      id: initialCharacter?.id ?? `custom-${Date.now()}`,
       name: name.trim(),
       faction,
       powerDisplay: powerDisplay || String(numericPower),
       numericPower,
       rank,
-      overallRank: 99,
-      factionRank: 99,
+      overallRank: initialCharacter?.overallRank ?? 99,
+      factionRank: initialCharacter?.factionRank ?? 99,
       firstPerson,
       catchphrase: catchphrase || 'よろしく！',
       specialMove: specialMove || '必殺技パンチ',
@@ -109,11 +186,12 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
       description: description || '新規参戦キャラクター。',
       avatarBg: faction === 'ally' ? 'from-cyan-600 to-teal-800' : 'from-rose-600 to-red-900',
       avatarSymbol: avatarSymbol || '⚔️',
-      tags: ['新規参戦', faction === 'ally' ? '味方' : '敵'],
+      avatarImage: avatarImage || undefined,
+      tags: initialCharacter?.tags ?? ['新規参戦', faction === 'ally' ? '味方' : '敵'],
       isCustom: true,
     };
 
-    onAdd(newChar);
+    onSave(savedChar);
     onClose();
 
     // Reset form
@@ -130,10 +208,15 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
-          <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-            <PlusCircle className="w-4 h-4 text-cyan-400" />
-            <span>新規キャラクター登録</span>
-          </h3>
+          <div>
+            <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+              <PlusCircle className="w-4 h-4 text-cyan-400" />
+              <span>{initialCharacter ? 'キャラクター編集' : '新規キャラクター登録'}</span>
+            </h3>
+            {userName && (
+              <p className="text-[11px] text-slate-400 mt-1">ログイン中: <span className="text-cyan-300 font-mono">{userName}</span></p>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="p-1 text-slate-500 hover:text-white rounded bg-[#030305] border border-white/10 transition-colors"
@@ -314,6 +397,40 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
           </div>
 
           <div>
+            <label className="font-bold text-slate-300 block mb-1">アバター画像 (任意)</label>
+            <div className="flex flex-col sm:flex-row items-start gap-3">
+              <div className="w-20 h-20 rounded-full bg-[#030305] border border-white/10 overflow-hidden flex items-center justify-center">
+                {avatarImage ? (
+                  <img src={avatarImage} alt="avatar preview" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-3xl">{avatarSymbol || '✨'}</span>
+                )}
+              </div>
+              <div className="flex-1">
+                <input
+                  type="file"
+                  disabled={!discordVerified}
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full text-xs text-slate-200 file:bg-cyan-500 file:text-black file:px-3 file:py-1 file:rounded file:border-none"
+                />
+                <p className="mt-2 text-[10px] text-slate-500">正方形以外の画像は中央を切り抜いて正方形として保存します。</p>
+                {imageError && <p className="mt-2 text-[10px] text-red-400">{imageError}</p>}
+                {avatarImage && (
+                  <button
+                    type="button"
+                    disabled={!discordVerified}
+                    onClick={() => setAvatarImage(null)}
+                    className="mt-2 text-[10px] text-cyan-300 hover:text-white underline"
+                  >
+                    画像をクリア
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div>
             <label className="font-bold text-slate-300 block mb-1">口癖・決めゼリフ</label>
             <input
               type="text"
@@ -375,7 +492,7 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
               className="px-5 py-1.5 rounded bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-black font-bold text-xs shadow-[0_0_15px_rgba(6,182,212,0.4)] flex items-center space-x-1.5"
             >
               {!discordVerified && <Lock className="w-3.5 h-3.5" />}
-              <span>キャラクターを登録</span>
+              <span>{initialCharacter ? '変更を保存' : 'キャラクターを登録'}</span>
             </button>
           </div>
         </form>

@@ -17,7 +17,8 @@ export interface Character {
   favoriteFood?: string; // 好物
   description: string; // 概要
   avatarBg: string; // Tailwind color gradient class
-  avatarSymbol: string; // Icon or emoji or letter symbol
+  avatarSymbol?: string; // Icon or emoji or letter symbol
+  avatarImage?: string; // Square avatar image data URL
   tags: string[];
   isCustom?: boolean;
 }

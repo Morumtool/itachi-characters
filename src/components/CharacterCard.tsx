@@ -88,9 +88,13 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
         {/* Character Avatar & Name */}
         <div className="flex items-center space-x-3 mb-3">
           <div
-            className={`w-12 h-12 rounded bg-gradient-to-br ${character.avatarBg} flex items-center justify-center text-xl shadow-md shrink-0 group-hover:scale-105 transition-transform border border-white/20`}
+            className={`w-12 h-12 rounded bg-gradient-to-br ${character.avatarBg} flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform border border-white/20 overflow-hidden`}
           >
-            <span>{character.avatarSymbol}</span>
+            {character.avatarImage ? (
+              <img src={character.avatarImage} alt={`${character.name} avatar`} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xl">{character.avatarSymbol}</span>
+            )}
           </div>
 
           <div className="min-w-0 flex-1">

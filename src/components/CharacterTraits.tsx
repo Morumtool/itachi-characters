@@ -97,9 +97,13 @@ export const CharacterTraits: React.FC<CharacterTraitsProps> = ({
               >
                 <div className="flex items-center space-x-3 min-w-0">
                   <div
-                    className={`w-9 h-9 rounded bg-gradient-to-br ${char.avatarBg} flex items-center justify-center text-lg shadow shrink-0 border border-white/10`}
+                    className={`w-9 h-9 rounded bg-gradient-to-br ${char.avatarBg} flex items-center justify-center text-lg shadow shrink-0 border border-white/10 overflow-hidden`}
                   >
-                    <span>{char.avatarSymbol}</span>
+                    {char.avatarImage ? (
+                      <img src={char.avatarImage} alt={`${char.name} avatar`} className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{char.avatarSymbol}</span>
+                    )}
                   </div>
 
                   <div className="min-w-0">

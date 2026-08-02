@@ -29,17 +29,41 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'catalog' | 'rankings' | 'traits' | 'simulator'>('catalog');
   const [selectedChar, setSelectedChar] = useState<Character | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [characterToEdit, setCharacterToEdit] = useState<Character | null>(null);
   const [activeSection, setActiveSection] = useState('section-hero');
   const [preselectedVersusChar, setPreselectedVersusChar] = useState<Character | null>(null);
+  const [userName, setUserName] = useState<string | null>(() => localStorage.getItem('itachi_user'));
+
+  const isLoggedIn = Boolean(userName);
+
+  useEffect(() => {
+    if (userName) {
+      localStorage.setItem('itachi_user', userName);
+    } else {
+      localStorage.removeItem('itachi_user');
+    }
+  }, [userName]);
+
+  const handleLogin = () => {
+    setUserName('ItachiHero#1234');
+  };
+
+  const handleLogout = () => {
+    setUserName(null);
+  };
 
   // Save custom characters
   useEffect(() => {
     localStorage.setItem('itachi_characters', JSON.stringify(characters));
   }, [characters]);
 
-  // Handle adding custom character
+  // Handle adding or updating custom character
   const handleAddCharacter = (newChar: Character) => {
     setCharacters((prev) => [newChar, ...prev]);
+  };
+
+  const handleSaveCharacter = (savedChar: Character) => {
+    setCharacters((prev) => prev.map((char) => (char.id === savedChar.id ? savedChar : char)));
   };
 
   // Filtered characters list
@@ -108,9 +132,15 @@ export default function App() {
         totalCount={characters.length}
         allyCount={totalAllyCount}
         enemyCount={totalEnemyCount}
-        onOpenAddModal={() => setIsAddModalOpen(true)}
+        onOpenAddModal={() => {
+          setCharacterToEdit(null);
+          setIsAddModalOpen(true);
+        }}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        userName={userName}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
       />
 
       {/* Main Container */}
@@ -269,13 +299,31 @@ export default function App() {
         character={selectedChar}
         onClose={() => setSelectedChar(null)}
         onStartVersus={handleStartVersus}
+        onEdit={(char) => {
+          setCharacterToEdit(char);
+          setIsAddModalOpen(true);
+          setSelectedChar(null);
+        }}
+        isLoggedIn={isLoggedIn}
       />
 
-      {/* Add Custom Character Modal */}
+      {/* Add/Edit Character Modal */}
       <AddCharacterModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAdd={handleAddCharacter}
+        initialCharacter={characterToEdit}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setCharacterToEdit(null);
+        }}
+        onSave={(char) => {
+          if (characterToEdit) {
+            handleSaveCharacter(char);
+          } else {
+            handleAddCharacter(char);
+          }
+        }}
+        isLoggedIn={isLoggedIn}
+        userName={userName}
       />
 
       {/* Footer */}

@@ -1,8 +1,11 @@
 import React from 'react';
-import { Shield, Swords, Users, Search, Sparkles, PlusCircle, Activity, Cpu } from 'lucide-react';
+import { Shield, Swords, Users, Search, Sparkles, PlusCircle, Activity, Cpu, LogIn } from 'lucide-react';
 import { Faction } from '../types';
 
 interface HeaderProps {
+  userName: string | null;
+  onLogin: () => void;
+  onLogout: () => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   selectedFaction: 'all' | Faction;
@@ -41,7 +44,29 @@ export const Header: React.FC<HeaderProps> = ({
             データベース: 正常稼働中
           </span>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            {userName ? (
+              <button
+                onClick={onLogout}
+                className="inline-flex items-center gap-2 rounded-full bg-[#13131a] border border-white/10 px-3 py-1 text-[10px] uppercase tracking-widest text-slate-200 hover:bg-[#1f1f29] transition-all"
+                title="ログアウト"
+              >
+                <Users className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{userName}</span>
+              </button>
+            ) : (
+              <button
+                onClick={onLogin}
+                className="inline-flex items-center gap-2 rounded-full bg-[#13131a] border border-white/10 px-3 py-1 text-[10px] uppercase tracking-widest text-slate-200 hover:bg-[#1f1f29] transition-all"
+                title="ログイン"
+              >
+                <LogIn className="w-3.5 h-3.5 text-cyan-400" />
+                <span>ログイン</span>
+              </button>
+            )}
+          </div>
+
           <span className="hidden md:inline-flex items-center gap-1.5 text-slate-400">
             <Activity className="w-3 h-3 text-emerald-400" />
             応答状態: 良好

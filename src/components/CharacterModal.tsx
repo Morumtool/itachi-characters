@@ -6,12 +6,16 @@ interface CharacterModalProps {
   character: Character | null;
   onClose: () => void;
   onStartVersus?: (character: Character) => void;
+  onEdit?: (character: Character) => void;
+  isLoggedIn?: boolean;
 }
 
 export const CharacterModal: React.FC<CharacterModalProps> = ({
   character,
   onClose,
   onStartVersus,
+  onEdit,
+  isLoggedIn,
 }) => {
   if (!character) return null;
 
@@ -27,9 +31,13 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
         <div className="relative p-5 pb-4 border-b border-white/10 flex items-start justify-between bg-[#0a0a0f]">
           <div className="flex items-center space-x-3.5">
             <div
-              className={`w-14 h-14 rounded bg-gradient-to-br ${character.avatarBg} flex items-center justify-center text-2xl shadow-lg border border-white/20 shrink-0`}
+              className={`w-14 h-14 rounded bg-gradient-to-br ${character.avatarBg} flex items-center justify-center text-2xl shadow-lg border border-white/20 shrink-0 overflow-hidden`}
             >
-              <span>{character.avatarSymbol}</span>
+              {character.avatarImage ? (
+                <img src={character.avatarImage} alt={`${character.name} avatar`} className="w-full h-full object-cover" />
+              ) : (
+                <span>{character.avatarSymbol}</span>
+              )}
             </div>
             <div>
               <div className="flex items-center space-x-2 mb-1">
@@ -139,18 +147,28 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             閉じる
           </button>
 
-          {onStartVersus && (
-            <button
-              onClick={() => {
-                onStartVersus(character);
-                onClose();
-              }}
-              className="px-5 py-1.5 rounded bg-cyan-500 text-black text-xs font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] flex items-center space-x-1.5 transition-all hover:bg-cyan-400"
-            >
-              <Swords className="w-3.5 h-3.5" />
-              <span>対決シミュレーション</span>
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {onEdit && (
+              <button
+                onClick={() => onEdit(character)}
+                className="px-4 py-1.5 rounded bg-amber-500 text-slate-950 text-xs font-bold shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:bg-amber-400 transition-all"
+              >
+                編集する
+              </button>
+            )}
+            {onStartVersus && (
+              <button
+                onClick={() => {
+                  onStartVersus(character);
+                  onClose();
+                }}
+                className="px-5 py-1.5 rounded bg-cyan-500 text-black text-xs font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] flex items-center space-x-1.5 transition-all hover:bg-cyan-400"
+              >
+                <Swords className="w-3.5 h-3.5" />
+                <span>対決シミュレーション</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
