@@ -200,6 +200,12 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
     setDescription('');
   };
 
+// AddCharacterModal の中の return よりも前に記述
+const handleSimulateAuth = () => {
+  console.log("Simulating auth...");
+};
+
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <div
