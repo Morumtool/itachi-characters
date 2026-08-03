@@ -128,7 +128,7 @@ export const AddCharacterModal: React.FC<AddCharacterModalProps> = ({
     setIsVerifying(true);
     setAuthError(null);
     try {
-      const res = await fetch('/api/auth/discord/url');
+      const res = await fetch('https://discord-auth-worker.mayonezuch.workers.dev/api/auth/discord/url');
       const data = await res.json();
       if (data.configured && data.url) {
         window.open(data.url, 'discord_oauth_popup', 'width=600,height=700');

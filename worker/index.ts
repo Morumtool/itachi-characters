@@ -22,7 +22,7 @@ export default {
     }
 
     // Endpoint: GET /api/auth/discord/url
-    if (pathname === '/api/auth/discord/url') {
+    if (pathname === 'https://discord-auth-worker.mayonezuch.workers.dev/api/auth/discord/url') {
       const clientId = env.DISCORD_CLIENT_ID;
       const redirectUri = env.DISCORD_REDIRECT_URI;
       

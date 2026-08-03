@@ -25,7 +25,7 @@ async function startServer() {
   app.use(express.json());
 
   // Discord OAuth configuration endpoint
-  app.get('/api/auth/discord/url', (req, res) => {
+  app.get('https://discord-auth-worker.mayonezuch.workers.dev/api/auth/discord/url', (req, res) => {
     const clientId = process.env.DISCORD_CLIENT_ID;
     const redirectUri = getRedirectUri(req);
     
